@@ -34,7 +34,7 @@ jobs:
       shell: pwsh
       run: |
         $versionParams = @{
-          Path = "./src/SitecoreCecSearchModule/SitecoreCecSearchModule.psd1"
+          Path = "./src/MedlemsserviceModule/MedlemsserviceModule.psd1"
           ModuleVersion = "${{ inputs.version_primary }}"
         }
         if("${{ inputs.version_prerelease }}" -ne "") {
@@ -50,7 +50,7 @@ jobs:
         NUGETKEY: ${{ secrets.NUGET_APIKEY }}
       run: |
         Install-Module Microsoft.PowerShell.PSResourceGet -Repository PSGallery -Force
-        Publish-PSResource -path ./src/SitecoreCecSearchModule -Repository PSGallery -APIKey "${env:NUGETKEY}" -Verbose
+        Publish-PSResource -path ./src/MedlemsserviceModule -Repository PSGallery -APIKey "${env:NUGETKEY}" -Verbose
 
   verify:
     name: Verify published package

@@ -1,5 +1,5 @@
 param(
-    $PackageName = "SitecoreCecSearchModule",
+    $PackageName = "MedlemsserviceModule",
     $Version = "0.1.9-rc0001"
 )
 $ErrorActionPreference = "STOP"
