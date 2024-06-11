@@ -46,6 +46,7 @@ function Set-MedlemsserviceProxy {
 }
 
 function Invoke-MedlemsserviceLogin {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', Justification = 'Login')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password', Justification = 'Obsolete')]
     param(
         $Username,
