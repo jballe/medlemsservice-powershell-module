@@ -77,7 +77,7 @@ function Get-EventRegistrationList {
     | Invoke-EventRegistrationMapping -FetchQuestionResponse:$FetchQuestionResponse -ExpandQuestionResponse:$ExpandQuestionResponse
 }
 
-function Get-EventRegistrationDetails {
+function Get-EventRegistrationDetail {
     param(
         [Parameter(Mandatory = $True)]
         $RegistrationId,
@@ -158,8 +158,7 @@ function Get-EventRegistrationDetails {
             "activity_ids",
             "message_ids",
             "display_name"
-        ),
-        [Switch]$ExpandQuestionResponse
+        )
     )
 
     $method = "read"
