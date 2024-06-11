@@ -28,7 +28,7 @@ CompanyName = 'Jesper Balle'
 Copyright = '(c) Jesper Balle. All rights reserved. LGPL'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'Client for interacting with Medlemsservice I/S'
 
 # Minimum version of the PowerShell engine required by this module
 PowerShellVersion = '6.0'
@@ -67,16 +67,32 @@ PowerShellVersion = '6.0'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Set-MedlemsserviceUrl', 'Set-MedlemsserviceProxy', 
-               'Set-MedlemsserviceContextGroup', 'Invoke-MedlemsserviceLogin', 
-               'Get-MedlemsserviceUrl', 'Get-MedlemsserviceModelFields', 
-               'Get-MedlemsserviceStructure', 'Get-MedlemsserviceMemberList', 
-               'Get-MedlemsserviceMember', 'Get-MedlemsserviceMemberDetails', 
-               'Get-MedlemsserviceMemberFunction', 'Get-EventList', 
-               'Get-EventRegistrationList', 'Invoke-MedlemsserviceCallRequest', 
-               'Get-MedlemsserviceRelation', 'Get-MedlemsserviceFunctionForMember', 
-               'Get-MedlemsserviceMemberIdFromModelId', 
-               'Read-MedlemsserviceDataset'
+FunctionsToExport = @(
+    "Set-MedlemsserviceUrl",
+    "Set-MedlemsserviceProxy",
+    "Set-MedlemsserviceContextGroup",
+    "Invoke-MedlemsserviceLogin",
+    "Get-MedlemsserviceUrl",
+    "Get-MedlemsserviceModelFields",
+    "Get-MedlemsserviceStructure",
+    "Get-MedlemsserviceMemberList"
+    "Get-MedlemsserviceMember",
+    "Get-MedlemsserviceMemberDetails",
+
+    # Functions
+    "Get-MedlemsserviceMemberFunction",
+
+    # Events
+    "Get-EventList",
+    "Get-EventRegistrationList",
+
+    # maybe leave out those
+    "Invoke-MedlemsserviceCallRequest",
+    "Get-MedlemsserviceRelation",
+    "Get-MedlemsserviceFunctionForMember",
+    "Get-MedlemsserviceMemberIdFromModelId",
+    "Read-MedlemsserviceDataset"
+)
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -127,7 +143,7 @@ PrivateData = @{
 
     } # End of PSData hashtable
 
- } # End of PrivateData hashtable
+} # End of PrivateData hashtable
 
 # HelpInfo URI of this module
 # HelpInfoURI = ''

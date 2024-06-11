@@ -238,7 +238,7 @@ function Get-MedlemsserviceRelation {
 function Get-MedlemsserviceMemberDetailsForMemberNumber {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$MemberNumber,
+        [string]$MemberNo,
         [Parameter(Mandatory = $true)]
         $GroupId,
         $Fields = $memberDefaultFields,
