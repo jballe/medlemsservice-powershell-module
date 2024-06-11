@@ -18,9 +18,9 @@ jobs:
     name: Build
     uses: ./.github/workflows/sub_version.yaml
 
-  # verify:
-  #   name: Verify
-  #   uses: ./.github/workflows/sub_verify.yaml
+  verify:
+    name: Verify
+    uses: ./.github/workflows/sub_verify.yaml
 
   publish_release:
     name: Release
