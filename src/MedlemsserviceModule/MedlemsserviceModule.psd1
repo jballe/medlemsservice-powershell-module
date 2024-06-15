@@ -91,6 +91,9 @@ FunctionsToExport = @(
     "Get-MedlemsserviceExportFields",
     "Get-MedlemsserviceExportChildFields",
 
+    # Documents
+    "Get-MedlemsserviceSigningDocument",
+
     # maybe leave out those
     "Invoke-MedlemsserviceCallRequest",
     "Get-MedlemsserviceRelation",
