@@ -86,6 +86,11 @@ FunctionsToExport = @(
     "Get-EventList",
     "Get-EventRegistrationList",
 
+    # Export
+    "Invoke-MedlemsserviceExport",
+    "Get-MedlemsserviceExportFields",
+    "Get-MedlemsserviceExportChildFields",
+
     # maybe leave out those
     "Invoke-MedlemsserviceCallRequest",
     "Get-MedlemsserviceRelation",

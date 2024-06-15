@@ -1,4 +1,5 @@
 New-Variable -Name MedlemsserviceUrl -Value "https://medlemsservice.spejdernet.dk" -Scope Global -Force
+New-Variable -Name MedlemsserviceCsrfToken -Value $Null -Scope Global -Force
 New-Variable -Name MedlemsserviceSession -Value $Null -Scope Global -Force
 New-Variable -Name MedlemsserviceContext -Value $Null -Scope Global -Force
 New-Variable -Name MedlemsserviceContextGroup -Value $Null -Scope Global -Force
@@ -59,12 +60,10 @@ function Invoke-MedlemsserviceLogin {
     }
 
     $MedlemsserviceSession = $Null
-    $response = Invoke-WebRequest -SessionVariable "MedlemsserviceSession" -uri "${MedlemsserviceUrl}/web/login" -Method GET -UseBasicParsing -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck
-    $isMatch = $response.Content -match "csrf_token: `"([^`"]+)`""
-    $csrfToken = $Matches[1]
-    if(-not $isMatch -or "" -eq "${csrfToken}") {
-        throw "Could not get CSRF Token"
-    }
+    Invoke-WebRequest -SessionVariable "MedlemsserviceSession" -uri "${MedlemsserviceUrl}"  -Method GET -UseBasicParsing -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck | Out-Null
+    Set-Variable -Scope Global -Name MedlemsserviceSession -Value $MedlemsserviceSession | Out-Null
+
+    $csrfToken = Get-MedlemsserviceCsrfToken -UrlPath "/web/login"
 
     $formData = @{
         login = $Username
@@ -85,11 +84,28 @@ function Invoke-MedlemsserviceLogin {
     }
 
     Set-Variable -Scope Global -Name MedlemsserviceSession -Value $MedlemsserviceSession | Out-Null
-    #Write-Host ("Login gave status {0}" -f $loginResult.StatusCode)
-    #$loginResult.Headers | Format-Table
+    Set-Variable -Scope Global -Name MedlemsserviceCsrfToken -Value $csrfToken | Out-Null
 
     $MedlemsserviceContext = Invoke-MedlemsserviceCallRequest -Path "/web/session/get_session_info" -SkipContext | Where-Object { $_.GetType().IsPublic }
     Set-Variable -Scope Global -Name MedlemsserviceContext -Value $MedlemsserviceContext | Out-Null
+}
+
+function Get-MedlemsserviceCsrfToken {
+    param(
+        $UrlPath
+    )
+
+    $MedlemsserviceSession = (Get-Variable -Scope Global -Name MedlemsserviceSession).Value
+    $response = Invoke-WebRequest  -WebSession $MedlemsserviceSession -uri "${MedlemsserviceUrl}${UrlPath}" -Method GET -UseBasicParsing -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck
+    Set-Variable -Scope Global -Name MedlemsserviceSession -Value $MedlemsserviceSession | Out-Null
+
+    $isMatch = $response.Content -match "csrf_token: `"([^`"]+)`""
+    $csrfToken = $Matches[1]
+    if(-not $isMatch -or "" -eq "${csrfToken}") {
+        throw "Could not get CSRF Token"
+    }
+
+    $csrfToken
 }
 
 function TryGetMember {
@@ -170,4 +186,35 @@ function Invoke-MedlemsserviceCallRequest {
     else {
         return $result.result
     }
+}
+
+function Invoke-MedlemsserviceFormDataRequest {
+    param(
+        [Parameter(Mandatory=$true)]
+        $DataObject,
+        $UrlPath = "/web/export/csv"
+    )
+
+    $csrfToken = Get-MedlemsserviceCsrfToken -UrlPath "/web"
+
+
+    $MedlemsserviceSession = (Get-Variable -Scope Global -Name MedlemsserviceSession).Value
+    $encodedData = ($DataObject | ConvertTo-Json -Depth 100 -Compress -EnumsAsStrings)
+    $LF = "`r`n"
+    $boundary = "----WebKitBoundaryPs{0}" -f [System.Guid]::NewGuid().ToString("N")
+
+    $bodyLines = ( 
+        "--$boundary",
+        "Content-Disposition: form-data; name=`"data`"",
+        "",
+        $encodedData,
+        "--$boundary" ,
+        "Content-Disposition: form-data; name=`"csrf_token`"",
+        "",
+        $csrfToken,
+        "--$boundary--"
+    ) -join $LF
+
+    $response = Invoke-WebRequest -WebSession $MedlemsserviceSession -uri "${MedlemsserviceUrl}${UrlPath}" -Method POST -ContentType "multipart/form-data; boundary=$boundary" -Body $bodyLines -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck -Headers @{ "Origin"=$MedlemsserviceUrl; "Referer" = "${MedlemsserviceUrl}/web"; "X-Requested-With"= "Powershell"; "Accept"="*/*" }
+    $response.Content
 }
