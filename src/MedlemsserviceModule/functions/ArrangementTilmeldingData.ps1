@@ -43,7 +43,7 @@ $defaultFields = @(
     "activity_exception_icon"
 )
 
-function Get-EventRegistrationList {
+function Get-MedlemsserviceEventRegistrationList {
     param(
         [Parameter(Mandatory = $True)]
         $EventId,
@@ -72,12 +72,13 @@ function Get-EventRegistrationList {
             active_ids       = @($EventId)
             active_id        = $EventId
             default_event_id = $EventId
+            event_event_id   = $EventId
         }
     } | Select-Object -ExpandProperty records `
-    | Invoke-EventRegistrationMapping -FetchQuestionResponse:$FetchQuestionResponse -ExpandQuestionResponse:$ExpandQuestionResponse
+    | Invoke-MedlemsserviceEventRegistrationMapping -FetchQuestionResponse:$FetchQuestionResponse -ExpandQuestionResponse:$ExpandQuestionResponse
 }
 
-function Get-EventRegistrationDetail {
+function Get-MedlemsserviceEventRegistrationDetail {
     param(
         [Parameter(Mandatory = $True)]
         $RegistrationId,
@@ -186,7 +187,7 @@ function Get-EventRegistrationDetail {
     $details.QuestionResponseIds = $details.event_question_response_ids
 }
 
-function Get-EventRegistrationQuestionResponse {
+function Get-MedlemsserviceEventRegistrationQuestionResponse {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName)]
@@ -222,9 +223,10 @@ function Get-EventRegistrationQuestionResponse {
         $details = Invoke-MedlemsserviceCallRequest -Path "/web/dataset/call_kw/${model}/${method}" -Params $params -ContextParameterName "kwargs"  | Where-Object { $_.GetType().IsPublic }
         $details | ForEach-Object {
             $_ | AddOrSetPropertyValue -PropertyName "question" -Value $_.event_question_id[1]
-            if($_.response_format -ne $False) {
+            if ($_.response_format -ne $False) {
                 $_  | AddOrSetPropertyValue -PropertyName "response" -Value $_.response_format
-            } else {
+            }
+            else {
                 $_  | AddOrSetPropertyValue -PropertyName "response" -Value $_.event_question_option_id[1]
             }
             $_
@@ -232,9 +234,9 @@ function Get-EventRegistrationQuestionResponse {
     }
 }
 
-function Invoke-EventRegistrationMapping {
+function Invoke-MedlemsserviceEventRegistrationMapping {
     param(
-        [Parameter(Mandatory=$True, ValueFromPipeline)]
+        [Parameter(Mandatory = $True, ValueFromPipeline)]
         $EventRegistration,
         [Switch]$FetchQuestionResponse,
         [Switch]$ExpandQuestionResponse
@@ -242,28 +244,30 @@ function Invoke-EventRegistrationMapping {
 
     process {
         $EventRegistration | AddOrSetPropertyValue -PropertyName "EventRegistrationId" -Value $EventRegistration.id
-        $EventRegistration | AddOrSetPropertyValue -PropertyName "QuestionResponseIds" -Value $EventRegistration.event_question_response_ids
+        if ($EventRegistration.PSObject.Properties.Name -contains "event_question_response_ids") {
+            $EventRegistration | AddOrSetPropertyValue -PropertyName "QuestionResponseIds" -Value $EventRegistration.event_question_response_ids
+        }
 
-        if($EventRegistration.participant_department_organization_id -ne $False) {
+        if ($EventRegistration.PSObject.Properties.Name -contains "participant_department_organization_id" -and $EventRegistration.participant_department_organization_id -ne $False) {
             $EventRegistration | AddOrSetPropertyValue -PropertyName OrganizationDepartment -Value $EventRegistration.participant_department_organization_id[1]
         }
-        if($EventRegistration.participant_local_organization_id -ne $False) {
+        if ($EventRegistration.PSObject.Properties.Name -contains "participant_local_organization_id" -and $EventRegistration.participant_local_organization_id -ne $False) {
             $EventRegistration | AddOrSetPropertyValue -PropertyName OrganizationLocal -Value $EventRegistration.participant_local_organization_id[1]
         }
-        if($EventRegistration.participant_regional_organization_id -ne $False) {
+        if ($EventRegistration.PSObject.Properties.Name -contains "participant_regional_organization_id" -and $EventRegistration.participant_regional_organization_id -ne $False) {
             $EventRegistration | AddOrSetPropertyValue -PropertyName OrganizationRegional -Value $EventRegistration.participant_regional_organization_id[1]
         }
-        if($EventRegistration.participant_sub_regional_organization_id -ne $False) {
+        if ($EventRegistration.PSObject.Properties.Name -contains "participant_sub_regional_organization_id" -and $EventRegistration.participant_sub_regional_organization_id -ne $False) {
             $EventRegistration | AddOrSetPropertyValue -PropertyName OrganizationSubRegional -Value $EventRegistration.participant_sub_regional_organization_id[1]
         }
 
 
-        if($ExpandQuestionResponse -or $FetchQuestionResponse) {
-            $response = $EventRegistration | Get-EventRegistrationQuestionResponse
+        if ($ExpandQuestionResponse -or $FetchQuestionResponse) {
+            $response = $EventRegistration | Get-MedlemsserviceEventRegistrationQuestionResponse
             $EventRegistration | AddOrSetPropertyValue -PropertyName "QuestionResponse" -Value $response
         }
 
-        if($ExpandQuestionResponse) {
+        if ($ExpandQuestionResponse) {
             $EventRegistration.QuestionResponse | ForEach-Object {
                 $EventRegistration | AddOrSetPropertyValue -PropertyName $_.question -Value $_.response
             }

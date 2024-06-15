@@ -19,7 +19,7 @@ $defaultEventFields = @(
     "website_published"
 )
 
-function Get-EventList {
+function Get-MedlemsserviceEventList {
     param(
         $MinDateStart = $Null,
         [Array]$Criteria = @(),

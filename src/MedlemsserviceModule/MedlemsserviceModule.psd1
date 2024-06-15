@@ -88,8 +88,8 @@ FunctionsToExport = @(
     "Get-MedlemsserviceMemberFunction",
 
     # Events
-    "Get-EventList",
-    "Get-EventRegistrationList",
+    "Get-MedlemsserviceEventList",
+    "Get-MedlemsserviceEventRegistrationList",
 
     # Export
     "Invoke-MedlemsserviceExport",
