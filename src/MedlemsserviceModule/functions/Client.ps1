@@ -28,10 +28,13 @@ function Get-MedlemsserviceUrl {
 
 function Set-MedlemsserviceContextGroup {
     [CmdletBinding()]
-    param([int]$Id)
+    param([Parameter(Mandatory=$True)][int]$Id)
 
     Set-Variable -Scope Global -Name MedlemsserviceContextGroup -Value $Id | Out-Null
+}
 
+function Get-MedlemsserviceContextGroup {
+    (Get-Variable -Scope Global -Name MedlemsserviceContextGroup).Value
 }
 
 function Set-MedlemsserviceProxy {
@@ -86,8 +89,8 @@ function Invoke-MedlemsserviceLogin {
     Set-Variable -Scope Global -Name MedlemsserviceSession -Value $MedlemsserviceSession | Out-Null
     Set-Variable -Scope Global -Name MedlemsserviceCsrfToken -Value $csrfToken | Out-Null
 
-    $MedlemsserviceContext = Invoke-MedlemsserviceCallRequest -Path "/web/session/get_session_info" -SkipContext | Where-Object { $_.GetType().IsPublic }
-    Set-Variable -Scope Global -Name MedlemsserviceContext -Value $MedlemsserviceContext | Out-Null
+    $ctx = Get-MedlemsserviceSessionContext
+    Set-MedlemsserviceContextGroup -Id $ctx.user_companies.current_company
 }
 
 function Get-MedlemsserviceCsrfToken {
@@ -106,6 +109,12 @@ function Get-MedlemsserviceCsrfToken {
     }
 
     $csrfToken
+}
+
+function Get-MedlemsserviceSessionContext {
+    $MedlemsserviceContext = Invoke-MedlemsserviceCallRequest -Path "/web/session/get_session_info" -SkipContext | Where-Object { $_.GetType().IsPublic }
+    Set-Variable -Scope Global -Name MedlemsserviceContext -Value $MedlemsserviceContext | Out-Null
+    $MedlemsserviceContext
 }
 
 function TryGetMember {

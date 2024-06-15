@@ -69,11 +69,16 @@ PowerShellVersion = '6.0'
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
     "Set-MedlemsserviceUrl",
+    "Get-MedlemsserviceUrl",
     "Set-MedlemsserviceProxy",
+
+    "Get-MedlemsserviceContextGroup",
     "Set-MedlemsserviceContextGroup",
     "Invoke-MedlemsserviceLogin",
-    "Get-MedlemsserviceUrl",
+    "Get-MedlemsserviceSessionContext",
+
     "Get-MedlemsserviceModelFields",
+
     "Get-MedlemsserviceStructure",
     "Get-MedlemsserviceMemberList"
     "Get-MedlemsserviceMember",
@@ -96,10 +101,10 @@ FunctionsToExport = @(
 
     # maybe leave out those
     "Invoke-MedlemsserviceCallRequest",
+    "Read-MedlemsserviceDataset"
     "Get-MedlemsserviceRelation",
     "Get-MedlemsserviceFunctionForMember",
-    "Get-MedlemsserviceMemberIdFromModelId",
-    "Read-MedlemsserviceDataset"
+    "Get-MedlemsserviceMemberIdFromModelId"
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
