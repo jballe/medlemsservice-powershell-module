@@ -9,6 +9,7 @@ New-Variable -Name ClientDefaultProperties -Scope Global -Force -Value @{
     ContentType = "application/json"
     Headers     = @{
         "X-Requested-With" = "XMLHttpRequest"
+        "User-Agent" = "MedlemsservicePowershellModule"
     }
     Verbose = $False
     SkipCertificateCheck = $False
@@ -27,6 +28,7 @@ function Get-MedlemsserviceUrl {
 }
 
 function Set-MedlemsserviceContextGroup {
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", '', Justification = 'Just context')]
     [CmdletBinding()]
     param([Parameter(Mandatory=$True)][int]$Id)
 
@@ -50,9 +52,9 @@ function Set-MedlemsserviceProxy {
 }
 
 function Invoke-MedlemsserviceLogin {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', 'Username', Justification = 'Login')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', 'Password', Justification = 'Login')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingUserNameAndPassWordParams", '')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'Password', Justification = 'Obsolete')]
+    [CmdletBinding()]
     param(
         $Username,
         $Password
@@ -74,7 +76,7 @@ function Invoke-MedlemsserviceLogin {
         csrf_token = $csrfToken
         redirect = ""
     }
-    $loginResult = Invoke-WebRequest -WebSession $MedlemsserviceSession -uri "${MedlemsserviceUrl}/web/login" -Method POST -ContentType "application/x-www-form-urlencoded" -Body $formData -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck
+    $loginResult = Invoke-WebRequest -WebSession $MedlemsserviceSession -uri "${MedlemsserviceUrl}/web/login" -Method POST -ContentType "application/x-www-form-urlencoded" -Body $formData -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck -SkipHeaderValidation
     if($loginResult.StatusCode -ne 200) {
         throw ("Unexpected login response status code {0}: {1}" -f $loginResult.StatusCode, $loginResult.Content)
     }

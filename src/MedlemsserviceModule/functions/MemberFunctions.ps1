@@ -34,7 +34,7 @@ function Get-MedlemsserviceFunctionForMember {
     param(
         $MemberId,
         $FunctionId,
-        $Fields = $defaultFields,
+        $Fields = $defaultMemberFunctionFields,
         [Switch]$SkipDetails
     )
 

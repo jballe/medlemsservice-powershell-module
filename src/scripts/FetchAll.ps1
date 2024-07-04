@@ -16,7 +16,7 @@ param(
 $ErrorActionPreference = "STOP"
 #$ErrorActionPreference = "Continue"
 
-Import-Module (Join-Path $PSScriptRoot "src/Medlemsservice" -Resolve) -RequiredVersion 1.0.1 -Force
+Import-Module (Join-Path $PSScriptRoot "../MedlemsserviceModule" -Resolve) -RequiredVersion 1.0.0 -Force
 
 If ("" -ne "${Proxy}") {
     Write-Host "Setting proxy $Proxy"
@@ -26,14 +26,14 @@ If ("" -ne "${Proxy}") {
 Invoke-MedlemsserviceLogin -Username $MedlemUsername -Password $MedlemPassword
 
 $units = Get-MedlemsserviceStructure
-$group = $units | Where-object { $_.organization_type_id -eq 2 -and ($_.display_name -eq $GroupName -or $GroupName -eq $Null) } | Select-Object -first 1
+$group = $units | Where-object { $_.organization_type_id -eq 2 -and ($_.display_name -eq $GroupName -or "${GroupName}" -eq "") } | Select-Object -first 1
 if ($null -eq $group) {
     Write-Host "Found groups:"
     $units | Where-Object { $_.organization_type_id -eq 2 } | Format-Table
     throw "Could not find unit for group named $GroupName"
 }
-
-Set-MedlemsserviceContextGroup $group.id
+Write-Host "Running for group"
+$group | Format-List
 
 Write-Host "Fetching list of members"
 $lst = Get-MedlemsserviceMemberList -GroupId $group.id -Fields member_number, name
@@ -44,7 +44,7 @@ $all = @()
 $count = 0
 foreach($member in $lst) {
     Write-Host ("Fetching member {0} of {1}: {2} ({3})" -f ++$count, $lst.Length, $member.name, $member.member_number)
-    $itm = Get-MedlemsserviceMemberDetails -GroupId $group.id -MemberId $member.id -ExpandRelations -SkipFunctionDetails:$SkipFunctionDetails
+    $itm = Get-MedlemsserviceMemberDetail -GroupId $group.id -MemberId $member.id -ExpandRelations -SkipFunctionDetails:$SkipFunctionDetails
     $all += $itm
 }
 $data = [PSCustomObject]@{

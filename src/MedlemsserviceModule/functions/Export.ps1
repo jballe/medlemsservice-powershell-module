@@ -51,7 +51,7 @@ function Invoke-MedlemsserviceExport {
     Invoke-MedlemsserviceFormDataRequest -UrlPath $urlpath  -DataObject $dataObj
 }
 
-function Get-MedlemsserviceExportFields {
+function Get-MedlemsserviceExportFieldModel {
     param(
         [Parameter(Mandatory=$true)]
         $Model,
@@ -68,7 +68,7 @@ function Get-MedlemsserviceExportFields {
 }
 
 #  Get-MedlemsserviceExportChildFields -Model "event.question.response" -ParentFieldName "event_question_response_ids"
-function Get-MedlemsserviceExportChildFields {
+function Get-MedlemsserviceExportChildFieldModel {
     param(
         [Parameter(Mandatory=$true)]
         $Model,

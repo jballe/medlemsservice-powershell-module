@@ -22,7 +22,7 @@ function Read-MedlemsserviceDataset {
     return $result | Where-Object { $_.GetType().IsPublic }
 }
 
-function Get-MedlemsserviceModelFields {
+function Get-MedlemsserviceFieldModel {
     param(
         [Parameter(Mandatory=$true)]
         $Model

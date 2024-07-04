@@ -77,12 +77,12 @@ FunctionsToExport = @(
     "Invoke-MedlemsserviceLogin",
     "Get-MedlemsserviceSessionContext",
 
-    "Get-MedlemsserviceModelFields",
+    "Get-MedlemsserviceFieldModel",
 
     "Get-MedlemsserviceStructure",
     "Get-MedlemsserviceMemberList"
     "Get-MedlemsserviceMember",
-    "Get-MedlemsserviceMemberDetails",
+    "Get-MedlemsserviceMemberDetail",
 
     # Functions
     "Get-MedlemsserviceMemberFunction",

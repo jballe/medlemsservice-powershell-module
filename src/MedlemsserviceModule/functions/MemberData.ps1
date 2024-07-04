@@ -16,15 +16,9 @@ $memberDefaultFields = @(
     "school_class_letter"
 )
 
-$global:member_structure = $null
-
 function Get-MedlemsserviceStructure {
-    # Get-MedlemsserviceModelFields -Model "member.organization"
-    if($null -eq $global:member_structure) {
-        $result = Read-MedlemsserviceDataset -Model "member.organization" -Fields @("display_name", "organization_type_id")
-        $global:member_structure = $result.records
-    }
-    $global:member_structure
+    $result = Read-MedlemsserviceDataset -Model "member.organization" -Fields @("display_name", "organization_type_id")
+    $result.records
 }
 
 function Get-MedlemsserviceMemberList {
@@ -81,7 +75,7 @@ function Get-MedlemsserviceMember {
         )
         kwargs = @{
             context = @{
-                bin_size = $true
+                bin_size     = $true
                 active_model = "member.organization"
             }
         }
@@ -95,7 +89,6 @@ function Get-MedlemsserviceMember {
 function Get-MedlemsserviceMemberIdForRelation {
     param(
         $GroupId,
-        $MemberId,
         $PartnerId,
         $RecordId,
         $Description
@@ -104,24 +97,24 @@ function Get-MedlemsserviceMemberIdForRelation {
     $MedlemsserviceContext = (Get-Variable -Scope Global -Name MedlemsserviceContext).Value
 
     $params = @{
-        args    = @(, $RecordId)
-        kwargs= @{
+        args   = @(, $RecordId)
+        kwargs = @{
             context = @{
-                default_this_partner_id=$PartnerId
+                default_this_partner_id          = $PartnerId
 
-                tz = $MedlemsserviceContext.user_context.tz
-                lang = $MedlemsserviceContext.user_context.lang
-                uid = $MedlemsserviceContext.user_context.uid
+                tz                               = $MedlemsserviceContext.user_context.tz
+                lang                             = $MedlemsserviceContext.user_context.lang
+                uid                              = $MedlemsserviceContext.user_context.uid
 
-                active_id = $GroupId
-                active_ids = @(,$GroupId)
+                active_id                        = $GroupId
+                active_ids                       = @(, $GroupId)
                 relation_profile_organization_id = $GroupId
-                search_default_organization_id = $GroupId
-                search_default_state = "active"
+                search_default_organization_id   = $GroupId
+                search_default_state             = "active"
             }
         }
-        method     = "action_open_profile"
-        model      = "res.partner.relation.all"
+        method = "action_open_profile"
+        model  = "res.partner.relation.all"
     }
 
     try {
@@ -141,13 +134,13 @@ function Get-MedlemsserviceMemberIdFromModelId {
     )
 
     $params = @{
-        args    = @(, $Id)
-        kwargs= @{
+        args   = @(, $Id)
+        kwargs = @{
             context = @{
             }
         }
-        method     = "action_open_profile"
-        model      = $Model
+        method = "action_open_profile"
+        model  = $Model
     }
 
     $result = Invoke-MedlemsserviceCallRequest -Path "/web/dataset/call_button" -Params $params -ContextParameterName "kwargs"
@@ -181,9 +174,9 @@ function Get-MedlemsserviceRelation {
         )
         kwargs = @{
             context = @{
-                relation_profile_org = $GroupId
-                bin_size                       = $True
-                default_this_partner_id        = $PartnerId
+                relation_profile_org    = $GroupId
+                bin_size                = $True
+                default_this_partner_id = $PartnerId
             }
         }
     }
@@ -192,21 +185,21 @@ function Get-MedlemsserviceRelation {
     $results = @()
     foreach ($relationItm in $relations) {
         $type = $relationItm.type_selection_id[1]
-        $memberId =  $relationItm.other_partner_id[0]
+        $memberId = $relationItm.other_partner_id[0]
         $memberName = $relationItm.other_partner_id[1]
         $primaryContact = [Boolean]$relationItm.this_primary_contact
 
         $memberNo = $null
-        if($relationItm.other_partner_id[1] -match "^(?<memberno>[0-9]{6,10}) \w+") {
+        if ($relationItm.other_partner_id[1] -match "^(?<memberno>[0-9]{6,10}) \w+") {
             $memberNo = $Matches[1]
-            $memberName = $relationItm.other_partner_id[1].Substring("${memberNo}".Length +2)
+            $memberName = $relationItm.other_partner_id[1].Substring("${memberNo}".Length + 2)
         }
 
         $relationMemberId = Get-MedlemsserviceMemberIdForRelation -GroupId $GroupId -MemberId $MemberId -PartnerId $PartnerId -RecordId $relationItm.id
 
         if ($Expand) {
             try {
-                $details = Get-MedlemsserviceMemberDetails -MemberId $relationMemberId -GroupId $GroupId -SkipFunctionDetails:$SkipExpandFunctionDetails -ExpandRelations:$false -Throw
+                $details = Get-MedlemsserviceMemberDetail -MemberId $relationMemberId -GroupId $GroupId -SkipFunctionDetails:$SkipExpandFunctionDetails -ExpandRelations:$false -Throw
             }
             catch {
                 Write-Warning ("Error while expanding $memberName ($memberNo) $_")
@@ -235,7 +228,7 @@ function Get-MedlemsserviceRelation {
     $results
 }
 
-function Get-MedlemsserviceMemberDetailsForMemberNumber {
+function Get-MedlemsserviceMemberDetailForMemberNumber {
     param(
         [Parameter(Mandatory = $true)]
         [string]$MemberNo,
@@ -248,10 +241,10 @@ function Get-MedlemsserviceMemberDetailsForMemberNumber {
     )
 
     $member = Get-MedlemsserviceMemberList -MemberNo $MemberNo -GroupId $GroupId -Fields $Fields -AlsoNonActive
-    Get-MedlemsserviceMemberDetails -MemberId $member.id -GroupId $GroupId -Fields $Fields -AlsoNonActive
+    Get-MedlemsserviceMemberDetail -MemberId $member.id -GroupId $GroupId -Fields $Fields -AlsoNonActive -ExpandRelations:$ExpandRelations -SkipFunctionDetails:$SkipFunctionDetails -Throw:$Throw
 }
 
-function Get-MedlemsserviceMemberDetails {
+function Get-MedlemsserviceMemberDetail {
     param(
         [Parameter(Mandatory = $true)]
         [int]$MemberId,
@@ -271,15 +264,16 @@ function Get-MedlemsserviceMemberDetails {
     $member = Get-MedlemsserviceMember -MemberId $memberId -Fields $Fields
     if ($Null -eq $member) {
         $msg = "Could not get member id: $MemberId"
-        if($Throw) {
+        if ($Throw) {
             throw $msg
-        } else {
+        }
+        else {
             Write-Warning $msg
         }
         Return
     }
     $relations = @()
-    foreach($relationId in $member.relation_all_ids) {
+    foreach ($relationId in $member.relation_all_ids) {
         $relations += Get-MedlemsserviceRelation -GroupId $GroupId `
             -MemberId $member.id -PartnerId $member.partner_id[0] `
             -RelationId $relationId `
