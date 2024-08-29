@@ -36,13 +36,6 @@ function Invoke-MedlemsserviceExport {
             lang = $MedlemsserviceContext.user_context.lang
             uid = $MedlemsserviceContext.user_context.uid
             allowed_company_ids = @($MedlemsserviceContextGroup)
-            params = @{
-                "menu_id"= 2181
-                "action"= 2899
-                "model" = "sg.document"
-                "view_type" = "list"
-                "cids" = 227
-            }
         }
         import_compat = $false
     }
