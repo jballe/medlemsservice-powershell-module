@@ -79,6 +79,7 @@ jobs:
         with:
           fetch-tags: false
           fetch-depth: 1
+      - uses: nuget/setup-nuget@v2
       - name: Install package
         shell: pwsh
         run: |
