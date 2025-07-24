@@ -246,8 +246,9 @@ function Get-MedlemsserviceMemberDetailForMemberNumber {
 
 function Get-MedlemsserviceMemberDetail {
     param(
-        [Parameter(Mandatory = $true)]
-        [int]$MemberId,
+        [Alias("MemberId")]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName)]
+        [int]$Id,
         [Parameter(Mandatory = $true)]
         $GroupId,
         $Fields = $memberDefaultFields,
@@ -256,43 +257,48 @@ function Get-MedlemsserviceMemberDetail {
         [Switch]$Throw
     )
 
-    if ($null -eq $MedlemsserviceUnits) {
-        $MedlemsserviceUnits = Get-MedlemsserviceStructure
-        $MedlemsserviceUnitIds = $medlemsserviceUnits | Select-object -ExpandProperty id
-    }
-    
-    $member = Get-MedlemsserviceMember -MemberId $memberId -Fields $Fields
-    if ($Null -eq $member) {
-        $msg = "Could not get member id: $MemberId"
-        if ($Throw) {
-            throw $msg
+    begin {
+        if ($null -eq $MedlemsserviceUnits) {
+            $MedlemsserviceUnits = Get-MedlemsserviceStructure
+            $MedlemsserviceUnitIds = $medlemsserviceUnits | Select-object -ExpandProperty id
         }
-        else {
-            Write-Warning $msg
-        }
-        Return
-    }
-    $relations = @()
-    foreach ($relationId in $member.relation_all_ids) {
-        $relations += Get-MedlemsserviceRelation -GroupId $GroupId `
-            -MemberId $member.id -PartnerId $member.partner_id[0] `
-            -RelationId $relationId `
-            -Expand:$ExpandRelations `
-            -SkipExpandFunctionDetails:$SkipFunctionDetails
-    }
-    $functionIds = @()
-    $functionIds += TryGetMember -InputObject $member -Property active_function_ids
-    $functions = $functionIds | ForEach-Object {
-        Get-MedlemsserviceFunctionForMember -MemberId $member.id -FunctionId $_ -SkipDetails:$SkipFunctionDetails
     }
 
-    [PSCustomObject]@{
-        Id        = $member.id
-        Number    = $member.member_number
-        Details   = $member
-        Relations = $relations
-        Functions = $functions | Where-Object {
-            $orgId = TryGetMember -InputObject $_ -Property OrgId
-            return $Null -eq $orgId -or $MedlemsserviceUnitIds.Contains($orgId[0]) }
+    process {
+        $memberId = $Id
+        $member = Get-MedlemsserviceMember -MemberId $memberId -Fields $Fields
+        if ($Null -eq $member) {
+            $msg = "Could not get member id: $memberId"
+            if ($Throw) {
+                throw $msg
+            }
+            else {
+                Write-Warning $msg
+            }
+            Return
+        }
+        $relations = @()
+        foreach ($relationId in $member.relation_all_ids) {
+            $relations += Get-MedlemsserviceRelation -GroupId $GroupId `
+                -MemberId $member.id -PartnerId $member.partner_id[0] `
+                -RelationId $relationId `
+                -Expand:$ExpandRelations `
+                -SkipExpandFunctionDetails:$SkipFunctionDetails
+        }
+        $functionIds = @()
+        $functionIds += TryGetMember -InputObject $member -Property active_function_ids
+        $functions = $functionIds | ForEach-Object {
+            Get-MedlemsserviceFunctionForMember -MemberId $member.id -FunctionId $_ -SkipDetails:$SkipFunctionDetails
+        }
+
+        [PSCustomObject]@{
+            Id        = $member.id
+            Number    = $member.member_number
+            Details   = $member
+            Relations = $relations
+            Functions = $functions | Where-Object {
+                $orgId = TryGetMember -InputObject $_ -Property OrgId
+                return $Null -eq $orgId -or $MedlemsserviceUnitIds.Contains($orgId[0]) }
+        }
     }
 }
