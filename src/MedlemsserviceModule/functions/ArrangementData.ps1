@@ -32,11 +32,11 @@ function Get-MedlemsserviceEventList {
     }
 
     if ($Null -ne $MinDateStart) {
-        $Criteria += @("date_end", ">=", $MinDateStart.ToString("yyyy-MM-ddThh:mm:ss.000Z") )
+        $Criteria += , @("date_end", ">=", $MinDateStart.ToString("yyyy-MM-ddThh:mm:ss.000Z") )
     }
 
     if ($Future) {
-        $Criteria += @("date_end", ">=", (Get-Date).ToString("yyyy-MM-ddThh:mm:ss.000Z") )
+        $Criteria += , @("date_end", ">=", (Get-Date).ToString("yyyy-MM-ddThh:mm:ss.000Z") )
     }
 
     Read-MedlemsserviceDataset -Model "event.event" -Fields $Fields -Params @{

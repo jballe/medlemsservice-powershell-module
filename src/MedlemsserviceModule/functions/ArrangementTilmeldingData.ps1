@@ -45,8 +45,8 @@ $defaultFields = @(
 
 function Get-MedlemsserviceEventRegistrationList {
     param(
-        [Parameter(Mandatory = $True)]
-        $EventId,
+        [Parameter(Mandatory = $True, ValueFromPipelineByPropertyName = "id")][Alias("EventId")]
+        $Id,
         $Fields = $defaultFields,
         [Array]$Criteria = @(),
         [Switch]$Forventede,
@@ -54,28 +54,39 @@ function Get-MedlemsserviceEventRegistrationList {
         [Switch]$ExpandQuestionResponse
     )
 
-    if ($Null -eq $Criteria) {
-        $Criteria = @("&")
-    }
-
-    $Criteria += , @("event_id", "=", $EventId)
-
-    If ($Forventede) {
-        $Criteria += , @("state", "in", @("manual", "waitinglist", "open", "done"))
-    }
-
-    $finalCriteria = $Criteria
-
-    Read-MedlemsserviceDataset -Model "event.registration" -Fields $Fields -Params @{
-        domain  = $finalCriteria
-        context = @{
-            active_ids       = @($EventId)
-            active_id        = $EventId
-            default_event_id = $EventId
-            event_event_id   = $EventId
+    begin {
+        If ($Forventede) {
+            $Criteria += , @("state", "in", @("manual", "waitinglist", "open", "done"))
         }
-    } | Select-Object -ExpandProperty records `
-    | Invoke-MedlemsserviceEventRegistrationMapping -FetchQuestionResponse:$FetchQuestionResponse -ExpandQuestionResponse:$ExpandQuestionResponse
+
+        if ($Fields -notcontains "event_question_response_ids" -and ($FetchQuestionResponse -or $ExpandQuestionResponse)) {
+            $Fields += "event_question_response_ids"
+        }
+    }
+
+    process {
+
+        $EventId = $Id
+
+        $finalCriteria = $Criteria
+        $finalCriteria += , @("event_id", "=", $EventId)
+        $finalCriteria = @("&") + $finalCriteria
+
+        $modelName = "event.registration"
+        Read-MedlemsserviceDataset -Model $modelName -Fields $Fields -Params @{
+            domain  = $finalCriteria
+            context = @{
+                active_ids               = @($EventId)
+                active_id                = $EventId
+                active_model             = $modelName
+                default_event_id         = $EventId
+                event_event_id           = $EventId
+                bin_size                 = $true
+                search_default_confirmed = $true
+            }
+        } | Select-Object -ExpandProperty records `
+        | Invoke-MedlemsserviceEventRegistrationMapping -FetchQuestionResponse:$FetchQuestionResponse -ExpandQuestionResponse:$ExpandQuestionResponse
+    }
 }
 
 function Get-MedlemsserviceEventRegistrationDetail {
@@ -196,12 +207,16 @@ function Get-MedlemsserviceEventRegistrationQuestionResponse {
         [Array]$QuestionResponseIds,
         $Fields = @("event_question_id", "event_question_option_id", "response_format")
     )
-    
+
     begin {
         $method = "read"
         $model = "event.question.response"
     }
     process {
+        if ($Null -eq $QuestionResponseIds -or $QuestionResponseIds.Length -eq 0) {
+            return
+        }
+
         $params = @{
             method = $method
             model  = $model
@@ -219,7 +234,7 @@ function Get-MedlemsserviceEventRegistrationQuestionResponse {
                 }
             }
         }
-    
+
         $details = Invoke-MedlemsserviceCallRequest -Path "/web/dataset/call_kw/${model}/${method}" -Params $params -ContextParameterName "kwargs"  | Where-Object { $_.GetType().IsPublic }
         $details | ForEach-Object {
             $_ | AddOrSetPropertyValue -PropertyName "question" -Value $_.event_question_id[1]
@@ -244,6 +259,7 @@ function Invoke-MedlemsserviceEventRegistrationMapping {
 
     process {
         $EventRegistration | AddOrSetPropertyValue -PropertyName "EventRegistrationId" -Value $EventRegistration.id
+
         if ($EventRegistration.PSObject.Properties.Name -contains "event_question_response_ids") {
             $EventRegistration | AddOrSetPropertyValue -PropertyName "QuestionResponseIds" -Value $EventRegistration.event_question_response_ids
         }
@@ -262,17 +278,17 @@ function Invoke-MedlemsserviceEventRegistrationMapping {
         }
 
 
-        if ($ExpandQuestionResponse -or $FetchQuestionResponse) {
+        if (($ExpandQuestionResponse -or $FetchQuestionResponse) -and $EventRegistration.PSObject.Properties.Name -contains "QuestionResponseIds" -and $EventRegistration.QuestionResponseIds.Length -gt 0) {
             $response = $EventRegistration | Get-MedlemsserviceEventRegistrationQuestionResponse
             $EventRegistration | AddOrSetPropertyValue -PropertyName "QuestionResponse" -Value $response
         }
 
-        if ($ExpandQuestionResponse) {
+        if ($ExpandQuestionResponse -and $Null -ne $EventRegistration.QuestionResponse -and $EventRegistration.QuestionResponse.Length -gt 0) {
             $EventRegistration.QuestionResponse | ForEach-Object {
                 $EventRegistration | AddOrSetPropertyValue -PropertyName $_.question -Value $_.response
             }
         }
-    
+
         $EventRegistration
     }
 }

@@ -1,15 +1,17 @@
 function Read-MedlemsserviceDataset {
     param(
-        [Parameter(Mandatory=$true)]
-        $Model, 
-    
-        [Parameter(Mandatory=$true)]
-        [Array]$Fields, 
-    
-        $Params=@{}, 
-        $Limit = 1000, 
-        $Offset = 0, 
-        $Sort = ""
+        [Parameter(Mandatory = $true)]
+        $Model,
+
+        [Parameter(Mandatory = $true)]
+        [Array]$Fields,
+
+        $Params = @{},
+        $Limit = 1000,
+        $Offset = 0,
+        $Sort = "",
+
+        [Switch]$SkipActiveIds
     )
 
     $Params.model = $Model
@@ -18,23 +20,23 @@ function Read-MedlemsserviceDataset {
     $Params.sort = $Sort
     $Params.fields = $Fields
 
-    $result = Invoke-MedlemsserviceCallRequest -Path "/web/dataset/search_read" -Params $Params
+    $result = Invoke-MedlemsserviceCallRequest -Path "/web/dataset/search_read" -Params $Params -SkipActiveIds:$SkipActiveIds
     return $result | Where-Object { $_.GetType().IsPublic }
 }
 
 function Get-MedlemsserviceFieldModel {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         $Model
     )
 
     Invoke-MedlemsserviceCallRequest -Path "/web/dataset/call_kw/${Model}/fields_get" -Params @{
-        model = $Model
+        model  = $Model
         method = "fields_get"
-        args = @()
+        args   = @()
         kwargs = @{
             context = @{
-                active_model = $Model
+                active_model  = $Model
                 show_org_path = $True
             }
         }
