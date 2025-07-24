@@ -8,25 +8,29 @@ param(
     $LocalRegistryName = "PrivateNugetSource",
     $LocalRegistryPath = "./__modules",
     $PackageName = "MedlemsserviceModule",
-    $Version = "0.1.0-betaworkflows0001",
+    $Version = "0.1.1-rc0007",
+    [Switch]$RegisterPackageSource,
     [Switch]$SkipCleanup
+
 )
 $ErrorActionPreference = "STOP"
 
-## Add the package source
-Write-Host "Register NuGet Source" -ForegroundColor Green
-# Remove any existing 
-nuget sources Remove -Name $NugetSourceName | Out-String | Out-Null
-# Add source
-nuget sources Add `
-    -Name $NugetSourceName `
-    -Source $Feed `
-    -UserName $User `
-    -Password $PersonalAccessToken `
-    -Verbosity detailed `
-    -NonInteractive `
-    -Verbosity detailed
-#-ConfigFile nuget.config `
+if ($RegisterPackageSource) {
+    ## Add the package source
+    Write-Host "Register NuGet Source" -ForegroundColor Green
+    # Remove any existing 
+    nuget sources Remove -Name $NugetSourceName | Out-String | Out-Null
+    # Add source
+    nuget sources Add `
+        -Name $NugetSourceName `
+        -Source $Feed `
+        -UserName $User `
+        -Password $PersonalAccessToken `
+        -Verbosity detailed `
+        -NonInteractive `
+        -Verbosity detailed
+    #-ConfigFile nuget.config `
+}
 
 
 ## Create a directory for local repository
