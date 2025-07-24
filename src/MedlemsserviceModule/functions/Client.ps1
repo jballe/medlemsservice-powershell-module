@@ -5,18 +5,18 @@ New-Variable -Name MedlemsserviceContext -Value $Null -Scope Global -Force
 New-Variable -Name MedlemsserviceContextGroup -Value $Null -Scope Global -Force
 New-Variable -Name MedlemsserviceRequestCount -Value 0 -Scope Global -Force
 New-Variable -Name ClientDefaultProperties -Scope Global -Force -Value @{
-    Proxy       = $Null
-    ContentType = "application/json"
-    Headers     = @{
+    Proxy                = $Null
+    ContentType          = "application/json"
+    Headers              = @{
         "X-Requested-With" = "XMLHttpRequest"
-        "User-Agent" = "MedlemsservicePowershellModule"
+        "User-Agent"       = "MedlemsservicePowershellModule"
     }
-    Verbose = $False
+    Verbose              = $False
     SkipCertificateCheck = $False
 }
 
 function Set-MedlemsserviceUrl {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification='No side effects')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'No side effects')]
     [CmdletBinding()]
     param($ServerUrl)
 
@@ -30,7 +30,7 @@ function Get-MedlemsserviceUrl {
 function Set-MedlemsserviceContextGroup {
     [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", '', Justification = 'Just context')]
     [CmdletBinding()]
-    param([Parameter(Mandatory=$True)][int]$Id)
+    param([Parameter(Mandatory = $True)][int]$Id)
 
     Set-Variable -Scope Global -Name MedlemsserviceContextGroup -Value $Id | Out-Null
 }
@@ -40,14 +40,16 @@ function Get-MedlemsserviceContextGroup {
 }
 
 function Set-MedlemsserviceProxy {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification='No side effects')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '', Justification = 'No side effects')]
     param(
-        [Parameter(Mandatory=$True, Position=0)]
-        $Uri
+        [Parameter(Mandatory = $True, Position = 0)]
+        $Uri,
+        [Switch]$SkipCertificateCheck = $False
     )
 
     $cfg = $(Get-Variable -Scope Global -Name ClientDefaultProperties).Value
     $cfg.Proxy = $Uri
+    $cfg.SkipCertificateCheck = $SkipCertificateCheck
     Set-Variable -Scope Global -Name ClientDefaultProperties -Value $cfg | Out-Null
 }
 
@@ -60,7 +62,7 @@ function Invoke-MedlemsserviceLogin {
         $Password
     )
 
-    If("$Username" -eq "" -or "$Password" -eq "") {
+    If ("$Username" -eq "" -or "$Password" -eq "") {
         throw "Username and password must be specified"
     }
 
@@ -71,18 +73,18 @@ function Invoke-MedlemsserviceLogin {
     $csrfToken = Get-MedlemsserviceCsrfToken -UrlPath "/web/login"
 
     $formData = @{
-        login = $Username
-        password = $Password
+        login      = $Username
+        password   = $Password
         csrf_token = $csrfToken
-        redirect = ""
+        redirect   = ""
     }
     $loginResult = Invoke-WebRequest -WebSession $MedlemsserviceSession -uri "${MedlemsserviceUrl}/web/login" -Method POST -ContentType "application/x-www-form-urlencoded" -Body $formData -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck -SkipHeaderValidation
-    if($loginResult.StatusCode -ne 200) {
+    if ($loginResult.StatusCode -ne 200) {
         throw ("Unexpected login response status code {0}: {1}" -f $loginResult.StatusCode, $loginResult.Content)
     }
 
     $isExpectedMatch = $loginResult.Content -match "odoo\.__session_info__"
-    if(-not ($isExpectedMatch)) {
+    if (-not ($isExpectedMatch)) {
         Write-Warning "Unexpected response from login POST call"
         $loginResult.Content | Write-Warning
         throw "Could not login"
@@ -106,7 +108,7 @@ function Get-MedlemsserviceCsrfToken {
 
     $isMatch = $response.Content -match "csrf_token: `"([^`"]+)`""
     $csrfToken = $Matches[1]
-    if(-not $isMatch -or "" -eq "${csrfToken}") {
+    if (-not $isMatch -or "" -eq "${csrfToken}") {
         throw "Could not get CSRF Token"
     }
 
@@ -114,42 +116,44 @@ function Get-MedlemsserviceCsrfToken {
 }
 
 function Get-MedlemsserviceSessionContext {
-    $MedlemsserviceContext = Invoke-MedlemsserviceCallRequest -Path "/web/session/get_session_info" -SkipContext | Where-Object { $_.GetType().IsPublic }
+    $MedlemsserviceContext = Invoke-MedlemsserviceCallRequest -Path "/web/session/get_session_info" -SkipContext
     Set-Variable -Scope Global -Name MedlemsserviceContext -Value $MedlemsserviceContext | Out-Null
     $MedlemsserviceContext
 }
 
 function TryGetMember {
     param(
-        [Parameter(Mandatory=$True, Position=0)]
+        [Parameter(Mandatory = $True, Position = 0)]
         $InputObject,
-        [Parameter(Mandatory=$True, Position=1)]
+        [Parameter(Mandatory = $True, Position = 1)]
         $PropertyName
     )
 
     try {
         $InputObject.$propertyName
-    } catch {
+    }
+    catch {
         $Null
     }
 }
 
 function Invoke-MedlemsserviceCallRequest {
-    [CmdletBinding(SupportsShouldProcess=$false)]
+    [CmdletBinding(SupportsShouldProcess = $false)]
     param(
         $Path,
         $Params = @{},
         $ContextParameterName = $Null,
-        [Switch]$SkipContext
+        [Switch]$SkipContext,
+        [Switch]$SkipActiveIds
     )
 
     $MedlemsserviceRequestCount = (Get-Variable -Scope Global -Name MedlemsserviceRequestCount).Value
-    $MedlemsserviceRequestCount += 1 
+    $MedlemsserviceRequestCount += 1
     Set-Variable -Scope Global -Name MedlemsserviceRequestCount -Value $MedlemsserviceRequestCount | Out-Null
 
     $req = @{
         jsonrpc = "2.0"
-        id = $MedlemsserviceRequestCount
+        id      = $MedlemsserviceRequestCount
         method  = "call"
         params  = $Params
     }
@@ -168,9 +172,9 @@ function Invoke-MedlemsserviceCallRequest {
         $value.lang = $MedlemsserviceContext.user_context.lang
         $value.uid = $MedlemsserviceContext.user_context.uid
         $value.allowed_company_ids = @($MedlemsserviceContextGroup)
-        if($Null -ne $MedlemsserviceContextGroup) {
+        if (-not $SkipActiveIds -and $value.PSObject.Properties.Name -notcontains "active_ids" -and ($Null -eq $value.ContainsKey -or -not $value.ContainsKey("active_ids")) -and $Null -ne $MedlemsserviceContextGroup) {
             $value.active_id = $MedlemsserviceContextGroup
-            $value.active_ids = @(,$MedlemsserviceContextGroup)
+            $value.active_ids = @(, $MedlemsserviceContextGroup)
             $value.search_default_organization_id = $MedlemsserviceContextGroup
             $value.search_default_state = "active"
         }
@@ -201,7 +205,7 @@ function Invoke-MedlemsserviceCallRequest {
 
 function Invoke-MedlemsserviceFormDataRequest {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         $DataObject,
         $UrlPath = "/web/export/csv"
     )
@@ -214,7 +218,7 @@ function Invoke-MedlemsserviceFormDataRequest {
     $LF = "`r`n"
     $boundary = "----WebKitBoundaryPs{0}" -f [System.Guid]::NewGuid().ToString("N")
 
-    $bodyLines = ( 
+    $bodyLines = (
         "--$boundary",
         "Content-Disposition: form-data; name=`"data`"",
         "",
@@ -226,6 +230,6 @@ function Invoke-MedlemsserviceFormDataRequest {
         "--$boundary--"
     ) -join $LF
 
-    $response = Invoke-WebRequest -WebSession $MedlemsserviceSession -uri "${MedlemsserviceUrl}${UrlPath}" -Method POST -ContentType "multipart/form-data; boundary=$boundary" -Body $bodyLines -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck -Headers @{ "Origin"=$MedlemsserviceUrl; "Referer" = "${MedlemsserviceUrl}/web"; "X-Requested-With"= "Powershell"; "Accept"="*/*" }
+    $response = Invoke-WebRequest -WebSession $MedlemsserviceSession -uri "${MedlemsserviceUrl}${UrlPath}" -Method POST -ContentType "multipart/form-data; boundary=$boundary" -Body $bodyLines -Proxy $ClientDefaultProperties.Proxy -SkipCertificateCheck:$ClientDefaultProperties.SkipCertificateCheck -Headers @{ "Origin" = $MedlemsserviceUrl; "Referer" = "${MedlemsserviceUrl}/web"; "X-Requested-With" = "Powershell"; "Accept" = "*/*" }
     $response.Content
 }
