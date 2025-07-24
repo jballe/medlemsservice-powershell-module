@@ -79,7 +79,9 @@ jobs:
         with:
           fetch-tags: false
           fetch-depth: 1
-      - uses: nuget/setup-nuget@v2
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
       - name: Install package
         shell: pwsh
         run: |
