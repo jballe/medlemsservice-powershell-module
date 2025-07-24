@@ -1,6 +1,6 @@
 # Medlemsservice
 
-> This is a Powershell module to interact with system for members of [KFUM-Spejderne i Danmark](https://www.kfumspejderne.dk), De Grønne Pigespejdere, Baptistspejderne i Danmark og FDF Frivilligt Drenge og Pigeforbund. The member system is custom built based on Odoo. You will need access to the system. The following description will be in danish.
+> This is a Powershell module to interact with system for members of [KFUM-Spejderne i Danmark](https://www.kfumspejderne.dk), [De Grønne Pigespejdere](https://pigespejder.dk/), [Baptistspejderne](https://baptistspejder.dk/) og [FDF](https://fdf.dk/). The [member system](https://medlemsservice.nu) is custom built based on Odoo. You will need access to the system. The following description will be in danish.
 
 ## Baggrund
 
@@ -13,7 +13,7 @@ Vi bruger dette til at bygge maillister baseret på funktioner, så enhederne ka
 
 ## Installation
 
-Powershell modulet ligger på [det offentlige Powershell Galleri](https://www.powershellgallery.com/packages/MedlemsserviceModule/0.1.0). Du skal derfor kunne installere moduler derfra:
+Powershell modulet ligger på [det offentlige Powershell Galleri](https://www.powershellgallery.com/packages/MedlemsserviceModule). Du skal derfor kunne installere moduler derfra:
 
 ```powershell
 # Tillad at køre powershell scripts
